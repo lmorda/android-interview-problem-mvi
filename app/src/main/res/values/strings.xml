@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Homework</string>
+    <string name="explore_title">Repositories</string>
+    <string name="search_repositories">Enter your search query to get started!</string>
+    <string name="list_empty">No results found</string>
+    <string name="list_error">Having a bit of trouble finding those repositories!</string>
+    <string name="details_error">Having a bit of trouble finding this repository!</string>
+    <string name="explore_search_hint">Search</string>
+    <string name="label_make">Make</string>
+    <string name="label_owner">Make</string>
+    <string name="informational_repo">Informational</string>
+
+    <string name="accessibility_back">Back</string>
+    <string name="accessibility_clear">Clear</string>
+    <string name="accessibility_search">Search</string>
+    <string name="accessibility_owner_image">Owner Image</string>
+</resources>
