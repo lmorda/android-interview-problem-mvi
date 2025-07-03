@@ -1,43 +1,42 @@
 [versions]
 
 # Kotlin & Android
-agp = "8.8.2"
-kotlin = "2.1.10"
-coreKtx = "1.15.0"
-coroutines = "1.10.1"
-lifecycle = "2.8.7"
+agp = "8.10.1"
+kotlin = "2.2.0"
+coreKtx = "1.16.0"
+coroutines = "1.10.2"
+lifecycle = "2.9.1"
 
 # Compose
-composeBom = "2025.02.00"
+composeBom = "2025.06.01"
 activityCompose = "1.10.1"
-navigationCompose = "2.8.8"
+navigationCompose = "2.9.0"
 
 # Testing
 junit = "4.13.2"
 coreTesting = "2.2.0"
-mockk = "1.13.11"
-playServicesMaps = "19.1.0"
-turbine = "1.2.0"
+mockk = "1.14.4"
+turbine = "1.2.1"
 junitAndroid = "1.2.1"
 espressoCore = "3.6.1"
 
 # Hilt
-hilt = "2.54"
+hilt = "2.56.2"
 hiltNavCompose = "1.2.0"
 
 # Retrofit
-retrofit = "2.11.0"
+retrofit = "3.0.0"
 okhttp = "4.12.0"
-serialization = "2.1.10"
+serialization = "2.2.0"
 retrofitSerialization = "1.0.0"
-kotlinxJson = "1.8.0"
+kotlinxJson = "1.9.0"
 
 # Other
 timber = "5.0.1"
-lottie = "6.6.2"
-coilCompose = "3.0.4"
-coilNetworkOkhttp = "3.0.4"
-runtimeLivedata = "1.7.8"
+lottie = "6.6.7"
+coilCompose = "3.2.0"
+coilNetworkOkhttp = "3.2.0"
+runtimeLivedata = "1.8.3"
 
 [libraries]
 
