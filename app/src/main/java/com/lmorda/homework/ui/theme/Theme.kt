@@ -46,6 +46,7 @@ fun topAppBarColors() = TopAppBarColors(
     titleContentColor = MaterialTheme.colorScheme.background,
     actionIconContentColor = MaterialTheme.colorScheme.background,
     navigationIconContentColor = MaterialTheme.colorScheme.background,
+    subtitleContentColor = MaterialTheme.colorScheme.background,
     scrolledContainerColor = MaterialTheme.colorScheme.background,
 )
 
