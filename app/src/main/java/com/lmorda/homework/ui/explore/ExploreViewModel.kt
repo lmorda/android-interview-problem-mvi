@@ -83,7 +83,7 @@ class ExploreViewModel @Inject constructor(
                 push(
                     OnLoaded(
                         githubRepos = newRepos,
-                        nextPage = nextPage ?: FIRST_PAGE_NUM,
+                        nextPage = (nextPage ?: FIRST_PAGE_NUM) + 1,
                         query = query,
                     )
                 )
