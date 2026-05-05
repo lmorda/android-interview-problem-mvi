@@ -7,6 +7,7 @@ import com.lmorda.homework.ui.MviViewModel
 import com.lmorda.homework.ui.explore.ExploreContract.Event
 import com.lmorda.homework.ui.explore.ExploreContract.Event.Internal.OnLoadError
 import com.lmorda.homework.ui.explore.ExploreContract.Event.Internal.OnLoaded
+import com.lmorda.homework.ui.explore.ExploreContract.Event.Internal.OnRateLimitReached
 import com.lmorda.homework.ui.explore.ExploreContract.Event.OnLoadNextPage
 import com.lmorda.homework.ui.explore.ExploreContract.Event.OnRefresh
 import com.lmorda.homework.ui.explore.ExploreContract.Event.OnSearchClear
@@ -17,10 +18,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
 private const val FIRST_PAGE_NUM = 1
+private const val HTTP_FORBIDDEN = 403
 
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
@@ -52,9 +55,9 @@ class ExploreViewModel @Inject constructor(
             searchQuery = event.searchQuery,
         )
 
-        is OnLoadError -> State.LoadError(
-            errorMessage = event.errorMessage,
-        )
+        is OnLoadError -> State.LoadError
+
+        is OnRateLimitReached -> State.RateLimitReached
 
         is OnSearchName -> {
             val searchQuery = event.query.trim()
@@ -96,7 +99,7 @@ class ExploreViewModel @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                push(OnLoadError(errorMessage = e.message))
+                push(e.toLoadErrorEvent())
             }
         }
     }
@@ -122,8 +125,16 @@ class ExploreViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                push(OnLoadError(errorMessage = e.message))
+                push(e.toLoadErrorEvent())
             }
         }
+    }
+
+    private fun Exception.toLoadErrorEvent(): Event.Internal = if (
+        this is HttpException && code() == HTTP_FORBIDDEN
+    ) {
+        OnRateLimitReached
+    } else {
+        OnLoadError
     }
 }

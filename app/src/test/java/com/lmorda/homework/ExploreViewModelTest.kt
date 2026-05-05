@@ -15,9 +15,12 @@ import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExploreViewModelTest {
@@ -156,9 +159,25 @@ class ExploreViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            ExploreContract.State.LoadError(errorMessage = "boom"),
+            ExploreContract.State.LoadError,
             viewModel.state.value,
         )
+    }
+
+    @Test
+    fun `rate limit error emits rate limit state`() = runTest {
+        coEvery {
+            repository.searchRepos(
+                page = 1,
+                query = "compose",
+            )
+        } throws httpException(code = 403)
+        viewModel = ExploreViewModel(dataRepository = repository)
+
+        viewModel.push(OnSearchName("compose"))
+        advanceUntilIdle()
+
+        assertEquals(ExploreContract.State.RateLimitReached, viewModel.state.value)
     }
 
     @Test
@@ -191,4 +210,11 @@ class ExploreViewModelTest {
 
         assertEquals(ExploreContract.State.Initial, viewModel.state.value)
     }
+
+    private fun httpException(code: Int) = HttpException(
+        Response.error<Unit>(
+            code,
+            "".toResponseBody(),
+        )
+    )
 }

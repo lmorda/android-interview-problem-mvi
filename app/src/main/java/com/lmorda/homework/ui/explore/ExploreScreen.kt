@@ -147,6 +147,7 @@ private fun ExploreContent(
         }
 
         is State.LoadError -> HomeworkLoadingError(stringResId = R.string.list_error)
+        is State.RateLimitReached -> HomeworkLoadingError(stringResId = R.string.list_rate_limit_error)
     }
 }
 

@@ -71,7 +71,7 @@ class ExploreScreenTest {
     fun testExploreErrorState() {
         composeTestRule.setContent {
             ExploreScreen(
-                state = State.LoadError(errorMessage = "boom"),
+                state = State.LoadError,
                 push = {},
                 onNavigateToDetails = {},
             )
@@ -79,6 +79,21 @@ class ExploreScreenTest {
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("Having a bit of trouble finding those repositories!")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun testExploreRateLimitState() {
+        composeTestRule.setContent {
+            ExploreScreen(
+                state = State.RateLimitReached,
+                push = {},
+                onNavigateToDetails = {},
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("GitHub search rate limit reached. Try again soon.")
             .assertIsDisplayed()
     }
 

@@ -23,9 +23,9 @@ interface ExploreContract {
             val searchQuery: String,
         ) : State()
 
-        data class LoadError(
-            val errorMessage: String?,
-        ) : State()
+        data object LoadError : State()
+
+        data object RateLimitReached : State()
     }
 
     sealed class Event {
@@ -46,9 +46,9 @@ interface ExploreContract {
                 val searchQuery: String,
             ) : Internal()
 
-            data class OnLoadError(
-                val errorMessage: String?,
-            ) : Internal()
+            data object OnLoadError : Internal()
+
+            data object OnRateLimitReached : Internal()
         }
     }
 }
