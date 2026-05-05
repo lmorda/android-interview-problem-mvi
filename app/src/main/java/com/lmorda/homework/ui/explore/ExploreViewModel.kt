@@ -1,7 +1,6 @@
 package com.lmorda.homework.ui.explore
 
 import androidx.lifecycle.viewModelScope
-import com.lmorda.homework.data.api.FIRST_PAGE_NUM
 import com.lmorda.homework.domain.DataRepository
 import com.lmorda.homework.domain.model.GithubRepo
 import com.lmorda.homework.ui.MviViewModel
@@ -21,6 +20,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
+private const val FIRST_PAGE_NUM = 1
+
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val dataRepository: DataRepository,
@@ -36,10 +37,11 @@ class ExploreViewModel @Inject constructor(
                 getRepoPage(
                     currentRepos = state.githubRepos,
                     nextPage = state.nextPage,
-                    query = state.query,
+                    searchQuery = state.searchQuery,
                 )
                 State.LoadingPage(
                     githubRepos = state.githubRepos,
+                    searchQuery = state.searchQuery,
                 )
             } else state
         }
@@ -47,7 +49,7 @@ class ExploreViewModel @Inject constructor(
         is OnLoaded -> State.Loaded(
             githubRepos = event.githubRepos,
             nextPage = event.nextPage,
-            query = event.query,
+            searchQuery = event.searchQuery,
         )
 
         is OnLoadError -> State.LoadError(
@@ -55,13 +57,19 @@ class ExploreViewModel @Inject constructor(
         )
 
         is OnSearchName -> {
-            getFilteredFirstPage(query = event.query, debounce = true)
-            state
+            val searchQuery = event.query.trim()
+            if (searchQuery.isBlank()) {
+                searchJob?.cancel()
+                State.Initial
+            } else {
+                getFilteredFirstPage(searchQuery = searchQuery, debounce = true)
+                state
+            }
         }
 
         is OnRefresh -> if (state is State.Loaded) {
-            getFilteredFirstPage(query = state.query, debounce = false)
-            State.LoadingRefresh
+            getFilteredFirstPage(searchQuery = state.searchQuery, debounce = false)
+            State.LoadingRefresh(searchQuery = state.searchQuery)
         } else state
 
         is OnSearchClear -> State.Initial
@@ -69,22 +77,22 @@ class ExploreViewModel @Inject constructor(
 
     private fun getRepoPage(
         currentRepos: List<GithubRepo>?,
-        nextPage: Int?,
-        query: String?,
+        nextPage: Int,
+        searchQuery: String,
     ) {
         viewModelScope.launch {
             try {
-                val reposPage = dataRepository.getRepos(
+                val reposPage = dataRepository.searchRepos(
                     page = nextPage,
-                    query = query,
+                    query = searchQuery,
                 )
                 val githubRepos = currentRepos ?: emptyList()
                 val newRepos = githubRepos + reposPage
                 push(
                     OnLoaded(
                         githubRepos = newRepos,
-                        nextPage = (nextPage ?: FIRST_PAGE_NUM) + 1,
-                        query = query,
+                        nextPage = nextPage + 1,
+                        searchQuery = searchQuery,
                     )
                 )
             } catch (e: Exception) {
@@ -94,22 +102,22 @@ class ExploreViewModel @Inject constructor(
     }
 
 
-    private fun getFilteredFirstPage(query: String?, debounce: Boolean) {
+    private fun getFilteredFirstPage(searchQuery: String, debounce: Boolean) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            if (debounce && !query.isNullOrBlank()) {
+            if (debounce) {
                 delay(EXPLORE_FILTER_DEBOUNCE_MILLIS)
             }
             try {
-                val githubRepos = dataRepository.getRepos(
-                    page = null,
-                    query = query,
+                val githubRepos = dataRepository.searchRepos(
+                    page = FIRST_PAGE_NUM,
+                    query = searchQuery,
                 )
                 push(
                     OnLoaded(
                         githubRepos = githubRepos,
                         nextPage = FIRST_PAGE_NUM + 1,
-                        query = query,
+                        searchQuery = searchQuery,
                     )
                 )
             } catch (e: Exception) {

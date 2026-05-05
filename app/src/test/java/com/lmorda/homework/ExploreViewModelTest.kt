@@ -34,24 +34,17 @@ class ExploreViewModelTest {
 
     @Test
     fun `loading state on init`() = runTest {
-        coEvery {
-            repository.getRepos(
-                page = null,
-                query = null,
-            )
-        } returns mockDomainData
         viewModel = ExploreViewModel(dataRepository = repository)
+
         assertEquals(ExploreContract.State.Initial, viewModel.state.value)
     }
-
-    // TODO: Add more unit tests
 
     @Test
     fun `refresh after search reloads first page with current query`() = runTest {
         val query = "retrofit"
         coEvery {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = query,
             )
         } returns mockDomainData
@@ -67,20 +60,20 @@ class ExploreViewModelTest {
             ExploreContract.State.Loaded(
                 githubRepos = mockDomainData,
                 nextPage = 2,
-                query = query,
+                searchQuery = query,
             ),
             viewModel.state.value,
         )
         coVerify(exactly = 2) {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = query,
             )
         }
         coVerify(exactly = 0) {
-            repository.getRepos(
-                page = null,
-                query = null,
+            repository.searchRepos(
+                page = 1,
+                query = "",
             )
         }
     }
@@ -89,8 +82,8 @@ class ExploreViewModelTest {
     fun `search loads first page with query after debounce`() = runTest {
         val query = "compose"
         coEvery {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = query,
             )
         } returns mockDomainData
@@ -103,7 +96,7 @@ class ExploreViewModelTest {
             ExploreContract.State.Loaded(
                 githubRepos = mockDomainData,
                 nextPage = 2,
-                query = query,
+                searchQuery = query,
             ),
             viewModel.state.value,
         )
@@ -113,13 +106,13 @@ class ExploreViewModelTest {
     fun `loading next page appends results and advances next page`() = runTest {
         val query = "android"
         coEvery {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = query,
             )
         } returns listOf(mockDomainData[0])
         coEvery {
-            repository.getRepos(
+            repository.searchRepos(
                 page = 2,
                 query = query,
             )
@@ -132,6 +125,7 @@ class ExploreViewModelTest {
         assertEquals(
             ExploreContract.State.LoadingPage(
                 githubRepos = listOf(mockDomainData[0]),
+                searchQuery = query,
             ),
             viewModel.state.value,
         )
@@ -141,7 +135,7 @@ class ExploreViewModelTest {
             ExploreContract.State.Loaded(
                 githubRepos = mockDomainData,
                 nextPage = 3,
-                query = query,
+                searchQuery = query,
             ),
             viewModel.state.value,
         )
@@ -151,8 +145,8 @@ class ExploreViewModelTest {
     fun `search error emits load error`() = runTest {
         val exception = Exception("boom")
         coEvery {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = "compose",
             )
         } throws exception
@@ -168,10 +162,23 @@ class ExploreViewModelTest {
     }
 
     @Test
+    fun `blank search stays initial and does not call repository`() = runTest {
+        viewModel = ExploreViewModel(dataRepository = repository)
+
+        viewModel.push(OnSearchName("   "))
+        advanceUntilIdle()
+
+        assertEquals(ExploreContract.State.Initial, viewModel.state.value)
+        coVerify(exactly = 0) {
+            repository.searchRepos(page = 1, query = "")
+        }
+    }
+
+    @Test
     fun `search clear returns to initial state`() = runTest {
         coEvery {
-            repository.getRepos(
-                page = null,
+            repository.searchRepos(
+                page = 1,
                 query = "compose",
             )
         } returns mockDomainData

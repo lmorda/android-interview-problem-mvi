@@ -266,7 +266,7 @@ private fun ExploreScreenPreview() {
             state = State.Loaded(
                 githubRepos = mockDomainData,
                 nextPage = null,
-                query = null,
+                searchQuery = "android",
             ),
             push = {},
             onNavigateToDetails = {},

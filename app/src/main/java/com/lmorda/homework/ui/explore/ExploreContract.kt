@@ -11,14 +11,17 @@ interface ExploreContract {
         data class Loaded(
             val githubRepos: List<GithubRepo>,
             val nextPage: Int?,
-            val query: String?,
+            val searchQuery: String,
         ) : State()
 
         data class LoadingPage(
             val githubRepos: List<GithubRepo>,
+            val searchQuery: String,
         ) : State()
 
-        data object LoadingRefresh : State()
+        data class LoadingRefresh(
+            val searchQuery: String,
+        ) : State()
 
         data class LoadError(
             val errorMessage: String?,
@@ -40,7 +43,7 @@ interface ExploreContract {
             data class OnLoaded(
                 val githubRepos: List<GithubRepo>,
                 val nextPage: Int?,
-                val query: String?,
+                val searchQuery: String,
             ) : Internal()
 
             data class OnLoadError(

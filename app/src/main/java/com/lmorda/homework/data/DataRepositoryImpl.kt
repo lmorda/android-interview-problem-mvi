@@ -1,7 +1,6 @@
 package com.lmorda.homework.data
 
 import com.lmorda.homework.data.api.ApiService
-import com.lmorda.homework.data.api.FIRST_PAGE_NUM
 import com.lmorda.homework.data.api.ORDER
 import com.lmorda.homework.data.api.REPOS_PER_PAGE
 import com.lmorda.homework.data.api.SORT
@@ -17,13 +16,14 @@ class DataRepositoryImpl @Inject constructor(
     private val mapper: GithubRepoMapper,
 ) : DataRepository {
 
-    override suspend fun getRepos(
-        page: Int?,
-        query: String?,
+    override suspend fun searchRepos(
+        page: Int,
+        query: String,
     ) = safeApiCall(
         apiCall = {
+            require(query.isNotBlank()) { "Search query must not be blank." }
             apiService.searchRepositories(
-                page = page ?: FIRST_PAGE_NUM,
+                page = page,
                 perPage = REPOS_PER_PAGE,
                 query = query,
                 order = ORDER,

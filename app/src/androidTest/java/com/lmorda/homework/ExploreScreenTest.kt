@@ -23,7 +23,7 @@ class ExploreScreenTest {
                 state = State.Loaded(
                     githubRepos = mockDomainData,
                     nextPage = null,
-                    query = null,
+                    searchQuery = "android",
                 ),
                 push = {},
                 onNavigateToDetails = {},
@@ -56,7 +56,7 @@ class ExploreScreenTest {
                 state = State.Loaded(
                     githubRepos = emptyList(),
                     nextPage = null,
-                    query = "missing",
+                    searchQuery = "missing",
                 ),
                 push = {},
                 onNavigateToDetails = {},
@@ -88,6 +88,7 @@ class ExploreScreenTest {
             ExploreScreen(
                 state = State.LoadingPage(
                     githubRepos = listOf(mockDomainData[0]),
+                    searchQuery = "compose",
                 ),
                 push = {},
                 onNavigateToDetails = {},
@@ -106,7 +107,7 @@ class ExploreScreenTest {
                 state = State.Loaded(
                     githubRepos = mockDomainData,
                     nextPage = null,
-                    query = null,
+                    searchQuery = "android",
                 ),
                 push = {},
                 onNavigateToDetails = { navigatedId = it },

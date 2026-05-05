@@ -13,6 +13,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 
 class DataRepositoryImplTest {
@@ -24,7 +25,7 @@ class DataRepositoryImplTest {
     )
 
     @Test
-    fun `getRepositories should map filter query and return mapped repositories`() = runTest {
+    fun `searchRepositories should map query and return mapped repositories`() = runTest {
         coEvery {
             apiService.searchRepositories(
                 page = 2,
@@ -35,7 +36,7 @@ class DataRepositoryImplTest {
             )
         } returns mockApiData
 
-        val repos = dataRepository.getRepos(page = 2, query = "compose")
+        val repos = dataRepository.searchRepos(page = 2, query = "compose")
 
         assertEquals(mockDomainData, repos)
         coVerify(exactly = 1) {
@@ -59,7 +60,26 @@ class DataRepositoryImplTest {
     }
 
     @Test
-    fun `getRepositories should default to first page`() = runTest {
+    fun `searchRepositories should require non blank query`() = runTest {
+        try {
+            dataRepository.searchRepos(page = 1, query = " ")
+            fail("Expected blank query to throw IllegalArgumentException.")
+        } catch (_: IllegalArgumentException) {
+        }
+
+        coVerify(exactly = 0) {
+            apiService.searchRepositories(
+                page = 1,
+                perPage = REPOS_PER_PAGE,
+                query = " ",
+                order = ORDER,
+                sort = SORT,
+            )
+        }
+    }
+
+    @Test
+    fun `searchRepositories should use requested page`() = runTest {
         coEvery {
             apiService.searchRepositories(
                 page = 1,
@@ -70,7 +90,7 @@ class DataRepositoryImplTest {
             )
         } returns mockApiData
 
-        dataRepository.getRepos(page = null, query = "android")
+        dataRepository.searchRepos(page = 1, query = "android")
 
         coVerify(exactly = 1) {
             apiService.searchRepositories(
