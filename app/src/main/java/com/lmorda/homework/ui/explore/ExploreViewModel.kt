@@ -55,24 +55,16 @@ class ExploreViewModel @Inject constructor(
         )
 
         is OnSearchName -> {
-            getFilteredFirstPage(query = event.query)
+            getFilteredFirstPage(query = event.query, debounce = true)
             state
         }
 
-        is OnRefresh -> {
-            getFirstPage()
+        is OnRefresh -> if (state is State.Loaded) {
+            getFilteredFirstPage(query = state.query, debounce = false)
             State.LoadingRefresh
-        }
+        } else state
 
         is OnSearchClear -> State.Initial
-    }
-
-    private fun getFirstPage() {
-        getRepoPage(
-            currentRepos = null,
-            nextPage = null,
-            query = null,
-        )
     }
 
     private fun getRepoPage(
@@ -102,10 +94,10 @@ class ExploreViewModel @Inject constructor(
     }
 
 
-    private fun getFilteredFirstPage(query: String?) {
+    private fun getFilteredFirstPage(query: String?, debounce: Boolean) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            if (!query.isNullOrBlank()) {
+            if (debounce && !query.isNullOrBlank()) {
                 delay(EXPLORE_FILTER_DEBOUNCE_MILLIS)
             }
             try {
