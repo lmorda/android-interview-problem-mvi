@@ -1,5 +1,6 @@
 package com.lmorda.homework.data.di
 
+import com.lmorda.homework.BuildConfig.DEBUG
 import com.lmorda.homework.data.api.ApiService
 import com.lmorda.homework.data.api.BASE_URL
 import com.lmorda.homework.data.api.CONTENT_TYPE
@@ -24,7 +25,11 @@ object ApiModule {
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder().addInterceptor(
             interceptor = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
             })
             .build()
     }
