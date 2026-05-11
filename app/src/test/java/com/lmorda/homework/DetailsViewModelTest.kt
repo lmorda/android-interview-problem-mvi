@@ -47,8 +47,6 @@ class DetailsViewModelTest {
         assertEquals(Initial, viewModel.state.value)
     }
 
-    // TODO: Add more unit tests
-
     @Test
     fun `load details emits loading then loaded state`() = runTest(testDispatcherRule.dispatcher) {
         val repo = CompletableDeferred<GithubRepo>()
