@@ -26,10 +26,12 @@ class DetailsViewModel @Inject constructor(
     private val id: Long? = savedStateHandle[SAVED_ID_KEY]
 
     override fun reduce(state: State, event: Event): State = when (event) {
-        is OnLoadDetails -> {
-            id?.let { getRepo(id = it) }
+        is OnLoadDetails -> id?.let {
+            getRepo(id = it)
             State.Loading
-        }
+        } ?: State.LoadError(
+            errorMessage = "Repository id is missing.",
+        )
 
         is OnLoaded -> State.Loaded(githubRepo = event.githubRepo)
         is OnLoadError -> State.LoadError(errorMessage = event.errorMessage)

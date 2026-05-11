@@ -72,4 +72,18 @@ class DetailsViewModelTest {
 
         assertEquals(LoadError(errorMessage = "boom"), viewModel.state.value)
     }
+
+    @Test
+    fun `missing details id emits load error without calling repository`() = runTest {
+        viewModel = DetailsViewModel(
+            dataRepository = repository,
+            savedStateHandle = SavedStateHandle(),
+        )
+
+        viewModel.push(OnLoadDetails)
+        advanceUntilIdle()
+
+        assertEquals(LoadError(errorMessage = "Repository id is missing."), viewModel.state.value)
+        coVerify(exactly = 0) { repository.getRepo(id = any()) }
+    }
 }
