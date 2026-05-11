@@ -2,6 +2,8 @@ package com.lmorda.homework
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.lmorda.homework.domain.DataRepository
+import com.lmorda.homework.coroutines.TestDispatcherProvider
+import com.lmorda.homework.domain.model.GithubRepo
 import com.lmorda.homework.domain.model.mockDomainData
 import com.lmorda.homework.ui.explore.ExploreContract
 import com.lmorda.homework.ui.explore.ExploreContract.Event.OnLoadNextPage
@@ -12,6 +14,7 @@ import com.lmorda.homework.ui.explore.ExploreViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -29,21 +32,24 @@ class ExploreViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val testDispatcherRule = TestDispatcherRule()
 
     private val repository: DataRepository = mockk()
     private lateinit var viewModel: ExploreViewModel
 
 
     @Test
-    fun `loading state on init`() = runTest {
-        viewModel = ExploreViewModel(dataRepository = repository)
+    fun `loading state on init`() = runTest(testDispatcherRule.dispatcher) {
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         assertEquals(ExploreContract.State.Initial, viewModel.state.value)
     }
 
     @Test
-    fun `refresh after search reloads first page with current query`() = runTest {
+    fun `refresh after search reloads first page with current query`() = runTest(testDispatcherRule.dispatcher) {
         val query = "retrofit"
         coEvery {
             repository.searchRepos(
@@ -51,13 +57,15 @@ class ExploreViewModelTest {
                 query = query,
             )
         } returns mockDomainData
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName(query))
         advanceUntilIdle()
 
         viewModel.push(OnRefresh)
-        advanceUntilIdle()
 
         assertEquals(
             ExploreContract.State.Loaded(
@@ -82,7 +90,7 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `search loads first page with query after debounce`() = runTest {
+    fun `search loads first page with query after debounce`() = runTest(testDispatcherRule.dispatcher) {
         val query = "compose"
         coEvery {
             repository.searchRepos(
@@ -90,7 +98,10 @@ class ExploreViewModelTest {
                 query = query,
             )
         } returns mockDomainData
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName(query))
         advanceUntilIdle()
@@ -106,8 +117,9 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `loading next page appends results and advances next page`() = runTest {
+    fun `loading next page appends results and advances next page`() = runTest(testDispatcherRule.dispatcher) {
         val query = "android"
+        val nextPage = CompletableDeferred<List<GithubRepo>>()
         coEvery {
             repository.searchRepos(
                 page = 1,
@@ -119,8 +131,13 @@ class ExploreViewModelTest {
                 page = 2,
                 query = query,
             )
-        } returns listOf(mockDomainData[1])
-        viewModel = ExploreViewModel(dataRepository = repository)
+        } coAnswers {
+            nextPage.await()
+        }
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName(query))
         advanceUntilIdle()
@@ -132,7 +149,8 @@ class ExploreViewModelTest {
             ),
             viewModel.state.value,
         )
-        advanceUntilIdle()
+
+        nextPage.complete(listOf(mockDomainData[1]))
 
         assertEquals(
             ExploreContract.State.Loaded(
@@ -145,7 +163,7 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `empty next page keeps current results and clears next page`() = runTest {
+    fun `empty next page keeps current results and clears next page`() = runTest(testDispatcherRule.dispatcher) {
         val query = "android"
         coEvery {
             repository.searchRepos(
@@ -159,12 +177,14 @@ class ExploreViewModelTest {
                 query = query,
             )
         } returns emptyList()
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName(query))
         advanceUntilIdle()
         viewModel.push(OnLoadNextPage)
-        advanceUntilIdle()
 
         assertEquals(
             ExploreContract.State.Loaded(
@@ -177,7 +197,7 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `empty first page emits terminal loaded state`() = runTest {
+    fun `empty first page emits terminal loaded state`() = runTest(testDispatcherRule.dispatcher) {
         val query = "android"
         coEvery {
             repository.searchRepos(
@@ -185,7 +205,10 @@ class ExploreViewModelTest {
                 query = query,
             )
         } returns emptyList()
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName(query))
         advanceUntilIdle()
@@ -201,7 +224,7 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `search error emits load error`() = runTest {
+    fun `search error emits load error`() = runTest(testDispatcherRule.dispatcher) {
         val exception = Exception("boom")
         coEvery {
             repository.searchRepos(
@@ -209,7 +232,10 @@ class ExploreViewModelTest {
                 query = "compose",
             )
         } throws exception
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName("compose"))
         advanceUntilIdle()
@@ -221,14 +247,17 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `rate limit error emits rate limit state`() = runTest {
+    fun `rate limit error emits rate limit state`() = runTest(testDispatcherRule.dispatcher) {
         coEvery {
             repository.searchRepos(
                 page = 1,
                 query = "compose",
             )
         } throws httpException(code = 403)
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName("compose"))
         advanceUntilIdle()
@@ -237,11 +266,13 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `blank search stays initial and does not call repository`() = runTest {
-        viewModel = ExploreViewModel(dataRepository = repository)
+    fun `blank search stays initial and does not call repository`() = runTest(testDispatcherRule.dispatcher) {
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
 
         viewModel.push(OnSearchName("   "))
-        advanceUntilIdle()
 
         assertEquals(ExploreContract.State.Initial, viewModel.state.value)
         coVerify(exactly = 0) {
@@ -250,19 +281,20 @@ class ExploreViewModelTest {
     }
 
     @Test
-    fun `search clear returns to initial state`() = runTest {
+    fun `search clear returns to initial state`() = runTest(testDispatcherRule.dispatcher) {
         coEvery {
             repository.searchRepos(
                 page = 1,
                 query = "compose",
             )
         } returns mockDomainData
-        viewModel = ExploreViewModel(dataRepository = repository)
+        viewModel = ExploreViewModel(
+            dataRepository = repository,
+            dispatcherProvider = TestDispatcherProvider(),
+        )
         viewModel.push(OnSearchName("compose"))
-        advanceUntilIdle()
 
         viewModel.push(OnSearchClear)
-        advanceUntilIdle()
 
         assertEquals(ExploreContract.State.Initial, viewModel.state.value)
     }

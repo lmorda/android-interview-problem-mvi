@@ -1,6 +1,7 @@
 package com.lmorda.homework.ui.explore
 
 import androidx.lifecycle.viewModelScope
+import com.lmorda.homework.coroutines.DispatcherProvider
 import com.lmorda.homework.domain.DataRepository
 import com.lmorda.homework.domain.model.GithubRepo
 import com.lmorda.homework.ui.MviViewModel
@@ -28,8 +29,10 @@ private const val HTTP_FORBIDDEN = 403
 @HiltViewModel
 class ExploreViewModel @Inject constructor(
     private val dataRepository: DataRepository,
+    dispatcherProvider: DispatcherProvider,
 ) : MviViewModel<State, Event>(
     initialState = State.Initial,
+    eventsDispatcher = dispatcherProvider.events(),
 ) {
 
     private var searchJob: Job? = null

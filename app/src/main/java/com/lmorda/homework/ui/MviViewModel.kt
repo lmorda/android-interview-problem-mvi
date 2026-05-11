@@ -2,7 +2,6 @@ package com.lmorda.homework.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,16 +9,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 abstract class MviViewModel<State, Event>(
     initialState: State,
+    eventsDispatcher: CoroutineContext,
 ) : ViewModel() {
     private val events = Channel<Event>(Channel.UNLIMITED)
     private val _state = MutableStateFlow(initialState)
     val state: StateFlow<State> = _state.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.Unconfined) {
+        viewModelScope.launch(eventsDispatcher) {
             events.consumeAsFlow()
                 .scan(initialState) { state, event ->
                     reduce(state, event)

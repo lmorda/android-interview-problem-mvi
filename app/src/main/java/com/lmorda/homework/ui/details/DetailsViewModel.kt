@@ -2,6 +2,7 @@ package com.lmorda.homework.ui.details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.lmorda.homework.coroutines.DispatcherProvider
 import com.lmorda.homework.domain.DataRepository
 import com.lmorda.homework.ui.MviViewModel
 import com.lmorda.homework.ui.details.DetailsContract.Event
@@ -19,8 +20,10 @@ const val SAVED_ID_KEY = "id"
 class DetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val dataRepository: DataRepository,
+    dispatcherProvider: DispatcherProvider,
 ) : MviViewModel<State, Event>(
-    initialState = State.Initial
+    initialState = State.Initial,
+    eventsDispatcher = dispatcherProvider.events(),
 ) {
 
     private val id: Long? = savedStateHandle[SAVED_ID_KEY]
