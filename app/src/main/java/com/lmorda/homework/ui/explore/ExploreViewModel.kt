@@ -94,7 +94,7 @@ class ExploreViewModel @Inject constructor(
                 push(
                     OnLoaded(
                         githubRepos = newRepos,
-                        nextPage = nextPage + 1,
+                        nextPage = if (reposPage.isEmpty()) null else nextPage + 1,
                         searchQuery = searchQuery,
                     )
                 )
@@ -119,7 +119,7 @@ class ExploreViewModel @Inject constructor(
                 push(
                     OnLoaded(
                         githubRepos = githubRepos,
-                        nextPage = FIRST_PAGE_NUM + 1,
+                        nextPage = if (githubRepos.isEmpty()) null else FIRST_PAGE_NUM + 1,
                         searchQuery = searchQuery,
                     )
                 )

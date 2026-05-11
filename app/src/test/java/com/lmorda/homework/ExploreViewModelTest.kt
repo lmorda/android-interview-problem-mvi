@@ -145,6 +145,62 @@ class ExploreViewModelTest {
     }
 
     @Test
+    fun `empty next page keeps current results and clears next page`() = runTest {
+        val query = "android"
+        coEvery {
+            repository.searchRepos(
+                page = 1,
+                query = query,
+            )
+        } returns listOf(mockDomainData[0])
+        coEvery {
+            repository.searchRepos(
+                page = 2,
+                query = query,
+            )
+        } returns emptyList()
+        viewModel = ExploreViewModel(dataRepository = repository)
+
+        viewModel.push(OnSearchName(query))
+        advanceUntilIdle()
+        viewModel.push(OnLoadNextPage)
+        advanceUntilIdle()
+
+        assertEquals(
+            ExploreContract.State.Loaded(
+                githubRepos = listOf(mockDomainData[0]),
+                nextPage = null,
+                searchQuery = query,
+            ),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
+    fun `empty first page emits terminal loaded state`() = runTest {
+        val query = "android"
+        coEvery {
+            repository.searchRepos(
+                page = 1,
+                query = query,
+            )
+        } returns emptyList()
+        viewModel = ExploreViewModel(dataRepository = repository)
+
+        viewModel.push(OnSearchName(query))
+        advanceUntilIdle()
+
+        assertEquals(
+            ExploreContract.State.Loaded(
+                githubRepos = emptyList(),
+                nextPage = null,
+                searchQuery = query,
+            ),
+            viewModel.state.value,
+        )
+    }
+
+    @Test
     fun `search error emits load error`() = runTest {
         val exception = Exception("boom")
         coEvery {
