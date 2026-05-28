@@ -2,7 +2,7 @@ package com.lmorda.homework.ui.details
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.lmorda.homework.coroutines.DispatcherProvider
+import com.lmorda.homework.dispatchers.DispatcherProvider
 import com.lmorda.homework.domain.DataRepository
 import com.lmorda.homework.ui.MviViewModel
 import com.lmorda.homework.ui.details.DetailsContract.Event

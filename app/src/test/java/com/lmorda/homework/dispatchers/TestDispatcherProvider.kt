@@ -1,4 +1,4 @@
-package com.lmorda.homework.coroutines
+package com.lmorda.homework.dispatchers
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi

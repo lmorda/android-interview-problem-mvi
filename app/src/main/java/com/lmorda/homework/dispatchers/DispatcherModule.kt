@@ -1,4 +1,4 @@
-package com.lmorda.homework.coroutines
+package com.lmorda.homework.dispatchers
 
 import dagger.Binds
 import dagger.Module

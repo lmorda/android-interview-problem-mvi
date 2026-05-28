@@ -1,7 +1,7 @@
 package com.lmorda.homework.ui.explore
 
 import androidx.lifecycle.viewModelScope
-import com.lmorda.homework.coroutines.DispatcherProvider
+import com.lmorda.homework.dispatchers.DispatcherProvider
 import com.lmorda.homework.domain.DataRepository
 import com.lmorda.homework.domain.model.GithubRepo
 import com.lmorda.homework.ui.MviViewModel

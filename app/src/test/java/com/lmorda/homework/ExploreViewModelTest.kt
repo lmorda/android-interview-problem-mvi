@@ -2,7 +2,7 @@ package com.lmorda.homework
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.lmorda.homework.domain.DataRepository
-import com.lmorda.homework.coroutines.TestDispatcherProvider
+import com.lmorda.homework.dispatchers.TestDispatcherProvider
 import com.lmorda.homework.domain.model.GithubRepo
 import com.lmorda.homework.domain.model.mockDomainData
 import com.lmorda.homework.ui.explore.ExploreContract
